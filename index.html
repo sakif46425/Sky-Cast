@@ -6,6 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>SkyCast | Weather Dashboard</title>
+    <!-- Premium Browser Tab Icon -->
+    <link
+      rel="icon"
+      type="image/png"
+      href="./assets/image/skycast_favicon.png"
+    />
 
     <link rel="stylesheet" href="style.css" />
   </head>
@@ -20,7 +26,8 @@
 
           <div>
             <h1>SkyCast</h1>
-            <small>Weather Intelligence</small>
+
+            <small> Weather Intelligence </small>
           </div>
         </div>
 
@@ -47,7 +54,7 @@
         </div>
       </aside>
 
-      <!-- MAIN CONTENT -->
+      <!-- MAIN -->
 
       <main class="main-content">
         <!-- TOPBAR -->
@@ -67,6 +74,8 @@
             <button id="themeBtn" class="theme-btn">🌙</button>
 
             <a href="profile.html" class="profile-mini">
+              <img id="dashboardProfileImage" alt="Profile" />
+
               <span id="userInitial"> U </span>
             </a>
           </div>
@@ -130,7 +139,7 @@
               </div>
 
               <div class="hero-weather-main">
-                <img id="weatherIcon" alt="Weather Icon" />
+                <img id="weatherIcon" alt="Weather" />
 
                 <div class="temperature-box">
                   <h2>
@@ -227,11 +236,9 @@
 
           <section id="favoritesSection" class="content-section">
             <div class="section-header">
-              <div>
-                <span class="label"> SAVED LOCATIONS </span>
+              <span class="label"> SAVED LOCATIONS </span>
 
-                <h2>Favorite Cities</h2>
-              </div>
+              <h2>Favorite Cities</h2>
             </div>
 
             <div id="favoritesContainer" class="favorites-container"></div>
@@ -241,11 +248,9 @@
 
           <section id="forecastSection" class="content-section">
             <div class="section-header">
-              <div>
-                <span class="label"> UPCOMING WEATHER </span>
+              <span class="label"> UPCOMING WEATHER </span>
 
-                <h2>5-Day Forecast</h2>
-              </div>
+              <h2>5-Day Forecast</h2>
             </div>
 
             <div id="forecastContainer" class="forecast-container"></div>

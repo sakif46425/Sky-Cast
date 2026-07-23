@@ -1,8 +1,18 @@
 "use strict";
 
+/* ===============================
+   STORAGE
+================================ */
+
 const CURRENT_USER_KEY = "skycast_current_user";
 
 const USERS_KEY = "skycast_users";
+
+const THEME_KEY = "skycast_theme";
+
+/* ===============================
+   USER
+================================ */
 
 let currentUser = JSON.parse(localStorage.getItem(CURRENT_USER_KEY));
 
@@ -18,7 +28,13 @@ const profileName = document.getElementById("profileName");
 
 const profileEmail = document.getElementById("profileEmail");
 
-const largeAvatar = document.getElementById("largeAvatar");
+const profileImage = document.getElementById("profileImage");
+
+const avatarInitial = document.getElementById("avatarInitial");
+
+const profileImageInput = document.getElementById("profileImageInput");
+
+const removeImageBtn = document.getElementById("removeImageBtn");
 
 const editName = document.getElementById("editName");
 
@@ -33,6 +49,8 @@ const profileLogout = document.getElementById("profileLogout");
 const deleteDataBtn = document.getElementById("deleteDataBtn");
 
 const deleteAccountBtn = document.getElementById("deleteAccountBtn");
+
+const themeBtn = document.getElementById("themeBtn");
 
 /* ===============================
    LOAD PROFILE
@@ -53,8 +71,108 @@ function loadProfile() {
 
   editBio.value = currentUser.bio || "";
 
-  largeAvatar.textContent = name.charAt(0).toUpperCase();
+  if (currentUser.profileImage) {
+    profileImage.src = currentUser.profileImage;
+
+    profileImage.style.display = "block";
+
+    avatarInitial.style.display = "none";
+  } else {
+    profileImage.style.display = "none";
+
+    avatarInitial.style.display = "block";
+
+    avatarInitial.textContent = name.charAt(0).toUpperCase();
+  }
 }
+
+loadProfile();
+
+/* ===============================
+   SAVE USER
+================================ */
+
+function saveCurrentUser() {
+  localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(currentUser));
+
+  let users = JSON.parse(localStorage.getItem(USERS_KEY)) || [];
+
+  const index = users.findIndex((user) => user.id === currentUser.id);
+
+  if (index !== -1) {
+    users[index] = currentUser;
+
+    localStorage.setItem(USERS_KEY, JSON.stringify(users));
+  }
+}
+
+/* ===============================
+   UPLOAD IMAGE
+================================ */
+
+profileImageInput.addEventListener("change", function (event) {
+  const file = event.target.files[0];
+
+  if (!file) {
+    return;
+  }
+
+  if (!file.type.startsWith("image/")) {
+    alert("Please select a valid image.");
+
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = function () {
+    currentUser.profileImage = reader.result;
+
+    profileImage.src = reader.result;
+
+    profileImage.style.display = "block";
+
+    avatarInitial.style.display = "none";
+
+    saveCurrentUser();
+
+    alert("Profile image updated successfully!");
+  };
+
+  reader.readAsDataURL(file);
+});
+
+/* ===============================
+   REMOVE IMAGE
+================================ */
+
+removeImageBtn.addEventListener("click", function () {
+  if (!currentUser.profileImage) {
+    alert("No profile image to remove.");
+
+    return;
+  }
+
+  if (!confirm("Remove your profile image?")) {
+    return;
+  }
+
+  delete currentUser.profileImage;
+
+  profileImage.src = "";
+
+  profileImage.style.display = "none";
+
+  avatarInitial.style.display = "block";
+
+  avatarInitial.textContent = currentUser.name.charAt(0).toUpperCase();
+
+  profileImageInput.value = "";
+
+  saveCurrentUser();
+
+  alert("Profile image removed successfully!");
+});
 
 /* ===============================
    SAVE PROFILE
@@ -63,19 +181,29 @@ function loadProfile() {
 profileForm.addEventListener("submit", function (event) {
   event.preventDefault();
 
-  currentUser.name = editName.value.trim();
+  const name = editName.value.trim();
 
-  currentUser.email = editEmail.value.trim();
+  const email = editEmail.value.trim();
+
+  if (name === "" || email === "") {
+    alert("Name and email are required.");
+
+    return;
+  }
+
+  currentUser.name = name;
+
+  currentUser.email = email;
 
   currentUser.bio = editBio.value.trim();
 
-  localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(currentUser));
+  saveCurrentUser();
 
-  profileName.textContent = currentUser.name;
+  profileName.textContent = name;
 
-  profileEmail.textContent = currentUser.email;
+  profileEmail.textContent = email;
 
-  largeAvatar.textContent = currentUser.name.charAt(0).toUpperCase();
+  avatarInitial.textContent = name.charAt(0).toUpperCase();
 
   alert("Profile updated successfully!");
 });
@@ -85,13 +213,15 @@ profileForm.addEventListener("submit", function (event) {
 ================================ */
 
 deleteDataBtn.addEventListener("click", function () {
-  if (confirm("Delete your saved cities and last weather data?")) {
-    localStorage.removeItem(`skycast_favorites_${currentUser.id}`);
-
-    localStorage.removeItem("skycast_last_city");
-
-    alert("Saved data deleted successfully!");
+  if (!confirm("Delete your saved cities and weather data?")) {
+    return;
   }
+
+  localStorage.removeItem(`skycast_favorites_${currentUser.id}`);
+
+  localStorage.removeItem("skycast_last_city");
+
+  alert("Saved data deleted successfully!");
 });
 
 /* ===============================
@@ -132,4 +262,30 @@ profileLogout.addEventListener("click", function () {
   }
 });
 
-loadProfile();
+/* ===============================
+   DARK LIGHT MODE
+================================ */
+
+function applyTheme() {
+  const theme = localStorage.getItem(THEME_KEY);
+
+  if (theme === "dark") {
+    document.body.classList.add("dark-mode");
+
+    themeBtn.textContent = "☀️";
+  } else {
+    document.body.classList.remove("dark-mode");
+
+    themeBtn.textContent = "🌙";
+  }
+}
+
+applyTheme();
+
+themeBtn.addEventListener("click", function () {
+  const isDark = document.body.classList.toggle("dark-mode");
+
+  localStorage.setItem(THEME_KEY, isDark ? "dark" : "light");
+
+  themeBtn.textContent = isDark ? "☀️" : "🌙";
+});

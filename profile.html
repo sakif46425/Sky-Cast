@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="style.css" />
   </head>
 
-  <body class="profile-page">
+  <body>
     <div class="profile-layout">
       <!-- SIDEBAR -->
 
@@ -52,7 +52,7 @@
         </div>
       </aside>
 
-      <!-- PROFILE MAIN -->
+      <!-- MAIN -->
 
       <main class="profile-main">
         <header class="profile-header">
@@ -66,7 +66,11 @@
             </p>
           </div>
 
-          <a href="index.html" class="back-dashboard-btn"> ← Dashboard </a>
+          <div class="profile-header-actions">
+            <button id="themeBtn" class="theme-btn">🌙</button>
+
+            <a href="index.html" class="back-dashboard-btn"> ← Dashboard </a>
+          </div>
         </header>
 
         <!-- PROFILE CARD -->
@@ -75,7 +79,25 @@
           <div class="profile-cover"></div>
 
           <div class="profile-info">
-            <div id="largeAvatar" class="large-avatar">U</div>
+            <div class="profile-image-wrapper">
+              <div class="large-avatar">
+                <img id="profileImage" alt="Profile Image" />
+
+                <span id="avatarInitial"> U </span>
+              </div>
+
+              <div class="image-actions">
+                <label for="profileImageInput" class="upload-image-btn">
+                  📷 Upload Image
+                </label>
+
+                <input type="file" id="profileImageInput" accept="image/*" />
+
+                <button id="removeImageBtn" class="remove-image-btn">
+                  🗑 Remove
+                </button>
+              </div>
+            </div>
 
             <div class="profile-user-info">
               <h2 id="profileName">User Name</h2>

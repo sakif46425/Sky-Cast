@@ -23,7 +23,7 @@ const THEME_KEY = "skycast_theme";
 const LAST_CITY_KEY = "skycast_last_city";
 
 /* ===============================
-   LOGIN PROTECTION
+   USER
 ================================ */
 
 const currentUser = JSON.parse(localStorage.getItem(CURRENT_USER_KEY));
@@ -86,15 +86,59 @@ const favoritesContainer = document.getElementById("favoritesContainer");
 
 const userInitial = document.getElementById("userInitial");
 
+const dashboardProfileImage = document.getElementById("dashboardProfileImage");
+
 let currentCity = "";
 
 /* ===============================
-   USER INITIAL
+   PROFILE IMAGE
 ================================ */
 
-if (currentUser && userInitial) {
-  userInitial.textContent = currentUser.name.charAt(0).toUpperCase();
+function loadDashboardProfile() {
+  if (currentUser.profileImage) {
+    dashboardProfileImage.src = currentUser.profileImage;
+
+    dashboardProfileImage.style.display = "block";
+
+    userInitial.style.display = "none";
+  } else {
+    dashboardProfileImage.style.display = "none";
+
+    userInitial.style.display = "block";
+
+    userInitial.textContent = currentUser.name.charAt(0).toUpperCase();
+  }
 }
+
+loadDashboardProfile();
+
+/* ===============================
+   THEME
+================================ */
+
+function applyTheme() {
+  const theme = localStorage.getItem(THEME_KEY);
+
+  if (theme === "dark") {
+    document.body.classList.add("dark-mode");
+
+    themeBtn.textContent = "☀️";
+  } else {
+    document.body.classList.remove("dark-mode");
+
+    themeBtn.textContent = "🌙";
+  }
+}
+
+applyTheme();
+
+themeBtn.addEventListener("click", function () {
+  const dark = document.body.classList.toggle("dark-mode");
+
+  localStorage.setItem(THEME_KEY, dark ? "dark" : "light");
+
+  themeBtn.textContent = dark ? "☀️" : "🌙";
+});
 
 /* ===============================
    LOGOUT
@@ -131,7 +175,7 @@ cityInput.addEventListener("keydown", function (event) {
 });
 
 /* ===============================
-   GET WEATHER
+   WEATHER
 ================================ */
 
 async function getWeather(city) {
@@ -168,8 +212,6 @@ async function getWeather(city) {
 
     updateFavoriteButton();
 
-    renderFavorites();
-
     showWeather();
   } catch (error) {
     showError(error.message);
@@ -179,7 +221,7 @@ async function getWeather(city) {
 }
 
 /* ===============================
-   UPDATE WEATHER
+   WEATHER UPDATE
 ================================ */
 
 function updateWeather(data) {
@@ -267,16 +309,21 @@ function updateForecast(data) {
 
 
                 <h3>
+
                     ${Math.round(item.main.temp)}°C
+
                 </h3>
 
 
                 <p>
+
                     ${capitalize(item.weather[0].description)}
+
                 </p>
 
 
-                <div class="forecast-extra">
+                <div
+                    class="forecast-extra">
 
                     💧 ${item.main.humidity}%
 
@@ -293,13 +340,11 @@ function updateForecast(data) {
 }
 
 /* ===============================
-   FAVORITES STORAGE
+   FAVORITES
 ================================ */
 
 function getFavoriteKey() {
-  return currentUser && currentUser.id
-    ? `${FAVORITES_KEY}_${currentUser.id}`
-    : FAVORITES_KEY;
+  return currentUser.id ? `${FAVORITES_KEY}_${currentUser.id}` : FAVORITES_KEY;
 }
 
 function getFavorites() {
@@ -309,10 +354,6 @@ function getFavorites() {
 function saveFavorites(favorites) {
   localStorage.setItem(getFavoriteKey(), JSON.stringify(favorites));
 }
-
-/* ===============================
-   FAVORITE BUTTON
-================================ */
 
 favoriteBtn.addEventListener("click", function () {
   if (!currentCity) {
@@ -340,10 +381,6 @@ favoriteBtn.addEventListener("click", function () {
   renderFavorites();
 });
 
-/* ===============================
-   UPDATE FAVORITE BUTTON
-================================ */
-
 function updateFavoriteButton() {
   const favorites = getFavorites();
 
@@ -358,10 +395,6 @@ function updateFavoriteButton() {
   favoriteBtn.classList.toggle("active", exists);
 }
 
-/* ===============================
-   RENDER FAVORITES
-================================ */
-
 function renderFavorites() {
   favoritesContainer.innerHTML = "";
 
@@ -370,15 +403,18 @@ function renderFavorites() {
   if (favorites.length === 0) {
     favoritesContainer.innerHTML = `
 
-            <div class="empty-favorites">
+            <div
+                class="empty-favorites">
 
                 <div>
                     ☆
                 </div>
 
+
                 <p>
                     No favorite cities yet.
                 </p>
+
 
                 <small>
                     Search a city and add it to your favorites.
@@ -398,16 +434,21 @@ function renderFavorites() {
 
     card.innerHTML = `
 
-                <div class="favorite-city-icon">
+                <div
+                    class="favorite-city-icon">
+
                     📍
+
                 </div>
 
 
-                <div class="favorite-city-info">
+                <div
+                    class="favorite-city-info">
 
                     <h3>
                         ${city}
                     </h3>
+
 
                     <p>
                         Click to view weather
@@ -454,7 +495,7 @@ function renderFavorites() {
 }
 
 /* ===============================
-   MY LOCATION
+   LOCATION
 ================================ */
 
 locationBtn.addEventListener("click", function () {
@@ -478,10 +519,6 @@ locationBtn.addEventListener("click", function () {
     },
   );
 });
-
-/* ===============================
-   LOCATION WEATHER
-================================ */
 
 async function getWeatherByLocation(lat, lon) {
   try {
@@ -514,7 +551,7 @@ async function getWeatherByLocation(lat, lon) {
 }
 
 /* ===============================
-   NAVIGATION FIX
+   NAVIGATION
 ================================ */
 
 document.querySelectorAll(".nav-item").forEach((item) => {
@@ -544,31 +581,7 @@ document.querySelectorAll(".nav-item").forEach((item) => {
 });
 
 /* ===============================
-   THEME
-================================ */
-
-themeBtn.addEventListener("click", function () {
-  document.body.classList.toggle("dark-mode");
-
-  const dark = document.body.classList.contains("dark-mode");
-
-  localStorage.setItem(THEME_KEY, dark ? "dark" : "light");
-
-  themeBtn.textContent = dark ? "☀️" : "🌙";
-});
-
-/* ===============================
-   LOAD THEME
-================================ */
-
-if (localStorage.getItem(THEME_KEY) === "dark") {
-  document.body.classList.add("dark-mode");
-
-  themeBtn.textContent = "☀️";
-}
-
-/* ===============================
-   UI FUNCTIONS
+   UI
 ================================ */
 
 function showLoading() {
@@ -606,7 +619,7 @@ function capitalize(text) {
 }
 
 /* ===============================
-   INITIALIZE
+   INIT
 ================================ */
 
 renderFavorites();
