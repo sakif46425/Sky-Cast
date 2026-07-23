@@ -2,57 +2,36 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>SkyCast | Weather Dashboard</title>
-
-    <link
-      rel="icon"
-      href="https://cdn-icons-png.flaticon.com/512/1163/1163661.png"
-    />
-
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
-      rel="stylesheet"
-    />
 
     <link rel="stylesheet" href="style.css" />
   </head>
 
   <body>
-    <div class="background-shape shape-one"></div>
-    <div class="background-shape shape-two"></div>
-
     <div class="app">
       <!-- SIDEBAR -->
+
       <aside class="sidebar">
         <div class="brand">
           <div class="brand-icon">☁️</div>
 
           <div>
             <h1>SkyCast</h1>
-            <span>Weather Intelligence</span>
+            <small>Weather Intelligence</small>
           </div>
         </div>
 
         <nav class="navigation">
-          <a href="#dashboard" class="nav-item active" id="dashboardNav">
-            <span>⌂</span>
-            Dashboard
-          </a>
+          <a href="#dashboard" class="nav-item active"> 🏠 Dashboard </a>
 
-          <a href="#forecast" class="nav-item" id="forecastNav">
-            <span>◷</span>
-            Forecast
-          </a>
+          <a href="#forecastSection" class="nav-item"> 📅 Forecast </a>
 
-          <a href="#favorites" class="nav-item" id="favoritesNav">
-            <span>♡</span>
-            Favorite Cities
-          </a>
+          <a href="#favoritesSection" class="nav-item"> ♡ Favorite Cities </a>
+
+          <a href="profile.html" class="nav-item"> 👤 My Profile </a>
         </nav>
 
         <div class="sidebar-bottom">
@@ -64,13 +43,15 @@
             <p>Stay updated with real-time weather conditions.</p>
           </div>
 
-          <p class="sidebar-footer">© 2026 SkyCast</p>
+          <button id="logoutBtn" class="logout-btn">🚪 Logout</button>
         </div>
       </aside>
 
       <!-- MAIN CONTENT -->
+
       <main class="main-content">
         <!-- TOPBAR -->
+
         <header class="topbar">
           <div>
             <p class="welcome-text">Good day 👋</p>
@@ -84,13 +65,18 @@
             </button>
 
             <button id="themeBtn" class="theme-btn">🌙</button>
+
+            <a href="profile.html" class="profile-mini">
+              <span id="userInitial"> U </span>
+            </a>
           </div>
         </header>
 
         <!-- SEARCH -->
+
         <section class="search-section">
           <div class="search-wrapper">
-            <span class="search-icon"> 🔍 </span>
+            <span> 🔍 </span>
 
             <input
               id="cityInput"
@@ -105,6 +91,7 @@
         </section>
 
         <!-- LOADING -->
+
         <div id="loading" class="loading">
           <div class="loader"></div>
 
@@ -112,6 +99,7 @@
         </div>
 
         <!-- WELCOME -->
+
         <section id="welcomeMessage" class="welcome-screen">
           <div class="welcome-cloud">🌤️</div>
 
@@ -121,53 +109,57 @@
         </section>
 
         <!-- WEATHER CONTENT -->
+
         <section id="weatherContent" class="weather-content hidden">
-          <!-- HERO WEATHER CARD -->
-          <div class="weather-grid">
+          <!-- DASHBOARD -->
+
+          <section id="dashboard" class="weather-grid">
+            <!-- HERO WEATHER -->
+
             <div class="hero-weather-card">
               <div class="hero-top">
                 <div>
                   <span class="label"> CURRENT WEATHER </span>
 
-                  <h1 id="cityName">Dhaka, BD</h1>
+                  <h1 id="cityName">City</h1>
 
                   <p id="date">Today</p>
                 </div>
 
-                <div class="weather-status">
-                  <span class="status-dot"></span>
-
-                  Live
-                </div>
+                <div class="weather-status">🟢 Live</div>
               </div>
 
               <div class="hero-weather-main">
-                <img id="weatherIcon" src="" alt="Weather Icon" />
+                <img id="weatherIcon" alt="Weather Icon" />
 
                 <div class="temperature-box">
                   <h2>
-                    <span id="temperature">--</span>
-                    <sup>°C</sup>
+                    <span id="temperature"> -- </span>
+
+                    <sup> °C </sup>
                   </h2>
 
-                  <p id="weatherDescription">Clear Sky</p>
+                  <p id="weatherDescription">--</p>
 
                   <span class="feels-like">
                     Feels like
-                    <b id="feelsLike">--</b>°C
+
+                    <b id="feelsLike"> -- </b>
+
+                    °C
                   </span>
                 </div>
               </div>
 
               <div class="sun-info">
                 <div>
-                  <span>🌅 Sunrise</span>
+                  <span> 🌅 Sunrise </span>
 
                   <strong id="sunrise"> -- </strong>
                 </div>
 
                 <div>
-                  <span>🌇 Sunset</span>
+                  <span> 🌇 Sunset </span>
 
                   <strong id="sunset"> -- </strong>
                 </div>
@@ -179,68 +171,61 @@
             </div>
 
             <!-- STATS -->
+
             <div class="stats-grid">
               <div class="info-card">
-                <div class="info-card-top">
-                  <span> Humidity </span>
+                <span> Humidity </span>
 
-                  <div class="info-icon">💧</div>
-                </div>
+                <h3>
+                  <span id="humidity"> -- </span>
 
-                <h3><span id="humidity">--</span>%</h3>
+                  %
+                </h3>
 
                 <p>Atmospheric moisture</p>
               </div>
 
               <div class="info-card">
-                <div class="info-card-top">
-                  <span> Wind Speed </span>
-
-                  <div class="info-icon">💨</div>
-                </div>
+                <span> Wind Speed </span>
 
                 <h3>
-                  <span id="windSpeed">--</span>
-                  <small>m/s</small>
+                  <span id="windSpeed"> -- </span>
+
+                  <small> m/s </small>
                 </h3>
 
                 <p>Current wind speed</p>
               </div>
 
               <div class="info-card">
-                <div class="info-card-top">
-                  <span> Pressure </span>
-
-                  <div class="info-icon">🌡️</div>
-                </div>
+                <span> Pressure </span>
 
                 <h3>
-                  <span id="pressure">--</span>
-                  <small>hPa</small>
+                  <span id="pressure"> -- </span>
+
+                  <small> hPa </small>
                 </h3>
 
                 <p>Atmospheric pressure</p>
               </div>
 
               <div class="info-card">
-                <div class="info-card-top">
-                  <span> Visibility </span>
-
-                  <div class="info-icon">👁️</div>
-                </div>
+                <span> Visibility </span>
 
                 <h3>
-                  <span id="visibility">--</span>
-                  <small>km</small>
+                  <span id="visibility"> -- </span>
+
+                  <small> km </small>
                 </h3>
 
                 <p>Clear visibility range</p>
               </div>
             </div>
-          </div>
+          </section>
 
           <!-- FAVORITES -->
-          <section id="favoritesSection" class="favorites-section">
+
+          <section id="favoritesSection" class="content-section">
             <div class="section-header">
               <div>
                 <span class="label"> SAVED LOCATIONS </span>
@@ -253,22 +238,20 @@
           </section>
 
           <!-- FORECAST -->
-          <section id="forecastSection" class="forecast-section">
+
+          <section id="forecastSection" class="content-section">
             <div class="section-header">
               <div>
                 <span class="label"> UPCOMING WEATHER </span>
 
                 <h2>5-Day Forecast</h2>
               </div>
-
-              <span class="forecast-badge"> Daily forecast </span>
             </div>
 
             <div id="forecastContainer" class="forecast-container"></div>
           </section>
         </section>
 
-        <!-- FOOTER -->
         <footer>
           <span> SkyCast Weather Dashboard </span>
 

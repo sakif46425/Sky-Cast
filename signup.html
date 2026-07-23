@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Create Account | SkyCast</title>
+
+    <link rel="stylesheet" href="auth.css" />
+  </head>
+
+  <body>
+    <div class="auth-page">
+      <div class="auth-brand">☁️ SkyCast</div>
+
+      <div class="auth-card">
+        <div class="auth-icon">✨</div>
+
+        <h1>Create Account</h1>
+
+        <p>Join SkyCast and personalize your weather experience</p>
+
+        <form id="signupForm">
+          <label>Full Name</label>
+
+          <input
+            type="text"
+            id="signupName"
+            placeholder="Your full name"
+            required
+          />
+
+          <label>Email Address</label>
+
+          <input
+            type="email"
+            id="signupEmail"
+            placeholder="you@example.com"
+            required
+          />
+
+          <label>Password</label>
+
+          <div class="password-box">
+            <input
+              type="password"
+              id="signupPassword"
+              placeholder="Create a password"
+              required
+            />
+
+            <button
+              type="button"
+              class="toggle-password"
+              data-target="signupPassword"
+            >
+              👁
+            </button>
+          </div>
+
+          <label>Confirm Password</label>
+
+          <input
+            type="password"
+            id="confirmPassword"
+            placeholder="Confirm password"
+            required
+          />
+
+          <button type="submit" class="auth-btn">Create Account</button>
+
+          <p id="signupMessage" class="auth-message"></p>
+        </form>
+
+        <p class="auth-footer">
+          Already have an account?
+
+          <a href="login.html"> Sign In </a>
+        </p>
+      </div>
+    </div>
+
+    <script src="auth.js"></script>
+  </body>
+</html>

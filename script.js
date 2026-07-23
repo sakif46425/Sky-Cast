@@ -1,18 +1,40 @@
 "use strict";
 
-// =====================================
-// API CONFIGURATION
-// =====================================
+/* ===============================
+   API
+================================ */
 
-const API_KEY = "ecdcf62e5de9ddd9dc27606a2929b2fe";
+const API_KEY = "1d979122602c1cfc9887737c6abb8807";
 
-const CURRENT_API = "https://api.openweathermap.org/data/2.5/weather";
+const WEATHER_API = "https://api.openweathermap.org/data/2.5/weather";
 
 const FORECAST_API = "https://api.openweathermap.org/data/2.5/forecast";
 
-// =====================================
-// DOM ELEMENTS
-// =====================================
+/* ===============================
+   STORAGE
+================================ */
+
+const CURRENT_USER_KEY = "skycast_current_user";
+
+const FAVORITES_KEY = "skycast_favorites";
+
+const THEME_KEY = "skycast_theme";
+
+const LAST_CITY_KEY = "skycast_last_city";
+
+/* ===============================
+   LOGIN PROTECTION
+================================ */
+
+const currentUser = JSON.parse(localStorage.getItem(CURRENT_USER_KEY));
+
+if (!currentUser) {
+  window.location.href = "login.html";
+}
+
+/* ===============================
+   DOM
+================================ */
 
 const cityInput = document.getElementById("cityInput");
 
@@ -20,29 +42,27 @@ const searchBtn = document.getElementById("searchBtn");
 
 const locationBtn = document.getElementById("locationBtn");
 
-const themeBtn = document.getElementById("themeBtn");
+const logoutBtn = document.getElementById("logoutBtn");
 
-const favoriteBtn = document.getElementById("favoriteBtn");
+const themeBtn = document.getElementById("themeBtn");
 
 const loading = document.getElementById("loading");
 
-const weatherContent = document.getElementById("weatherContent");
-
 const welcomeMessage = document.getElementById("welcomeMessage");
+
+const weatherContent = document.getElementById("weatherContent");
 
 const errorMessage = document.getElementById("errorMessage");
 
-// Weather Elements
-
 const cityName = document.getElementById("cityName");
 
-const date = document.getElementById("date");
+const dateElement = document.getElementById("date");
 
 const temperature = document.getElementById("temperature");
 
-const feelsLike = document.getElementById("feelsLike");
-
 const weatherDescription = document.getElementById("weatherDescription");
+
+const feelsLike = document.getElementById("feelsLike");
 
 const weatherIcon = document.getElementById("weatherIcon");
 
@@ -58,93 +78,99 @@ const sunrise = document.getElementById("sunrise");
 
 const sunset = document.getElementById("sunset");
 
+const favoriteBtn = document.getElementById("favoriteBtn");
+
 const forecastContainer = document.getElementById("forecastContainer");
 
 const favoritesContainer = document.getElementById("favoritesContainer");
 
-// Navigation
-
-const dashboardNav = document.getElementById("dashboardNav");
-
-const forecastNav = document.getElementById("forecastNav");
-
-const favoritesNav = document.getElementById("favoritesNav");
-
-const navItems = document.querySelectorAll(".nav-item");
-
-// Current City
+const userInitial = document.getElementById("userInitial");
 
 let currentCity = "";
 
-// =====================================
-// SEARCH
-// =====================================
+/* ===============================
+   USER INITIAL
+================================ */
 
-searchBtn.addEventListener("click", () => {
+if (currentUser && userInitial) {
+  userInitial.textContent = currentUser.name.charAt(0).toUpperCase();
+}
+
+/* ===============================
+   LOGOUT
+================================ */
+
+logoutBtn.addEventListener("click", function () {
+  if (confirm("Are you sure you want to logout?")) {
+    localStorage.removeItem(CURRENT_USER_KEY);
+
+    window.location.href = "login.html";
+  }
+});
+
+/* ===============================
+   SEARCH
+================================ */
+
+searchBtn.addEventListener("click", function () {
   const city = cityInput.value.trim();
 
-  if (!city) {
+  if (city === "") {
     showError("Please enter a city name.");
 
     return;
   }
 
-  getWeatherByCity(city);
+  getWeather(city);
 });
 
-cityInput.addEventListener("keydown", (event) => {
+cityInput.addEventListener("keydown", function (event) {
   if (event.key === "Enter") {
     searchBtn.click();
   }
 });
 
-// =====================================
-// GET WEATHER BY CITY
-// =====================================
+/* ===============================
+   GET WEATHER
+================================ */
 
-async function getWeatherByCity(city) {
-  if (API_KEY === "YOUR_API_KEY_HERE") {
-    showError("Please add your API key in script.js.");
-
-    return;
-  }
-
+async function getWeather(city) {
   showLoading();
 
-  clearError();
-
   try {
-    const currentResponse = await fetch(
-      `${CURRENT_API}?q=${encodeURIComponent(city)}&appid=${API_KEY}&units=metric`,
+    const response = await fetch(
+      `${WEATHER_API}?q=${encodeURIComponent(
+        city,
+      )}&appid=${API_KEY}&units=metric`,
     );
 
-    if (!currentResponse.ok) {
-      throw new Error("City not found. Please check the city name.");
+    const data = await response.json();
+
+    if (data.cod !== 200) {
+      throw new Error(data.message);
     }
 
-    const currentData = await currentResponse.json();
+    currentCity = data.name;
+
+    localStorage.setItem(LAST_CITY_KEY, currentCity);
+
+    updateWeather(data);
 
     const forecastResponse = await fetch(
-      `${FORECAST_API}?q=${encodeURIComponent(city)}&appid=${API_KEY}&units=metric`,
+      `${FORECAST_API}?q=${encodeURIComponent(
+        city,
+      )}&appid=${API_KEY}&units=metric`,
     );
-
-    if (!forecastResponse.ok) {
-      throw new Error("Forecast data could not be loaded.");
-    }
 
     const forecastData = await forecastResponse.json();
 
-    currentCity = currentData.name;
-
-    displayCurrentWeather(currentData);
-
-    displayForecast(forecastData);
+    updateForecast(forecastData);
 
     updateFavoriteButton();
 
-    showWeatherContent();
+    renderFavorites();
 
-    localStorage.setItem("lastCity", currentCity);
+    showWeather();
   } catch (error) {
     showError(error.message);
   } finally {
@@ -152,20 +178,28 @@ async function getWeatherByCity(city) {
   }
 }
 
-// =====================================
-// DISPLAY CURRENT WEATHER
-// =====================================
+/* ===============================
+   UPDATE WEATHER
+================================ */
 
-function displayCurrentWeather(data) {
+function updateWeather(data) {
   cityName.textContent = `${data.name}, ${data.sys.country}`;
 
-  date.textContent = formatDate(new Date());
+  dateElement.textContent = new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+
+    month: "long",
+
+    day: "numeric",
+
+    year: "numeric",
+  });
 
   temperature.textContent = Math.round(data.main.temp);
 
   feelsLike.textContent = Math.round(data.main.feels_like);
 
-  weatherDescription.textContent = data.weather[0].description;
+  weatherDescription.textContent = capitalize(data.weather[0].description);
 
   weatherIcon.src = `https://openweathermap.org/img/wn/${data.weather[0].icon}@4x.png`;
 
@@ -177,168 +211,180 @@ function displayCurrentWeather(data) {
 
   visibility.textContent = (data.visibility / 1000).toFixed(1);
 
-  sunrise.textContent = formatTime(data.sys.sunrise, data.timezone);
+  sunrise.textContent = formatTime(data.sys.sunrise);
 
-  sunset.textContent = formatTime(data.sys.sunset, data.timezone);
+  sunset.textContent = formatTime(data.sys.sunset);
 }
 
-// =====================================
-// DISPLAY 5-DAY FORECAST
-// =====================================
+/* ===============================
+   FORECAST
+================================ */
 
-function displayForecast(data) {
+function updateForecast(data) {
   forecastContainer.innerHTML = "";
 
-  const dailyData = {};
+  const days = {};
 
   data.list.forEach((item) => {
-    const forecastDate = item.dt_txt.split(" ")[0];
+    const date = new Date(item.dt * 1000);
 
-    const forecastTime = item.dt_txt.split(" ")[1];
+    const key = date.toISOString().split("T")[0];
 
-    if (forecastTime === "12:00:00") {
-      dailyData[forecastDate] = item;
+    if (!days[key]) {
+      days[key] = [];
     }
+
+    days[key].push(item);
   });
 
-  let forecastDays = Object.values(dailyData).slice(0, 5);
+  Object.values(days)
+    .slice(0, 5)
+    .forEach((day) => {
+      const item = day[Math.floor(day.length / 2)];
 
-  if (forecastDays.length < 5) {
-    forecastDays = getFallbackForecast(data.list);
-  }
+      const card = document.createElement("div");
 
-  forecastDays.forEach((item) => {
-    const card = document.createElement("div");
+      card.className = "forecast-card";
 
-    card.className = "forecast-card";
+      card.innerHTML = `
 
-    const forecastDate = new Date(item.dt * 1000);
+                <div class="forecast-day">
 
-    card.innerHTML = `
-
-                <h3>
-                    ${forecastDate.toLocaleDateString("en-US", {
+                    ${new Date(item.dt * 1000).toLocaleDateString("en-US", {
                       weekday: "short",
+
+                      month: "short",
+
+                      day: "numeric",
                     })}
-                </h3>
-
-                <img
-                    src="https://openweathermap.org/img/wn/${item.weather[0].icon}@2x.png"
-                    alt="${item.weather[0].description}"
-                >
-
-                <div class="forecast-temp">
-
-                    ${Math.round(item.main.temp)}°C
 
                 </div>
 
+
+                <img
+                    src="https://openweathermap.org/img/wn/${item.weather[0].icon}@2x.png"
+                    alt="Weather">
+
+
+                <h3>
+                    ${Math.round(item.main.temp)}°C
+                </h3>
+
+
                 <p>
-
-                    ${item.weather[0].description}
-
+                    ${capitalize(item.weather[0].description)}
                 </p>
 
-                <p>
+
+                <div class="forecast-extra">
 
                     💧 ${item.main.humidity}%
 
-                </p>
+                    <br>
+
+                    💨 ${item.wind.speed} m/s
+
+                </div>
 
             `;
 
-    forecastContainer.appendChild(card);
-  });
+      forecastContainer.appendChild(card);
+    });
 }
 
-// =====================================
-// FALLBACK FORECAST
-// =====================================
+/* ===============================
+   FAVORITES STORAGE
+================================ */
 
-function getFallbackForecast(list) {
-  const dates = {};
-
-  list.forEach((item) => {
-    const date = item.dt_txt.split(" ")[0];
-
-    if (!dates[date]) {
-      dates[date] = item;
-    }
-  });
-
-  return Object.values(dates).slice(0, 5);
+function getFavoriteKey() {
+  return currentUser && currentUser.id
+    ? `${FAVORITES_KEY}_${currentUser.id}`
+    : FAVORITES_KEY;
 }
-
-// =====================================
-// FAVORITE CITIES
-// =====================================
 
 function getFavorites() {
-  return JSON.parse(localStorage.getItem("skycast-favorites")) || [];
+  return JSON.parse(localStorage.getItem(getFavoriteKey())) || [];
 }
 
 function saveFavorites(favorites) {
-  localStorage.setItem("skycast-favorites", JSON.stringify(favorites));
+  localStorage.setItem(getFavoriteKey(), JSON.stringify(favorites));
 }
 
-function addToFavorites() {
+/* ===============================
+   FAVORITE BUTTON
+================================ */
+
+favoriteBtn.addEventListener("click", function () {
   if (!currentCity) {
     return;
   }
 
-  const favorites = getFavorites();
-
-  if (favorites.includes(currentCity)) {
-    showError("This city is already in favorites.");
-
-    return;
-  }
-
-  favorites.push(currentCity);
-
-  saveFavorites(favorites);
-
-  updateFavoriteButton();
-
-  renderFavorites();
-}
-
-function removeFromFavorites(city) {
   let favorites = getFavorites();
 
-  favorites = favorites.filter((favorite) => favorite !== city);
+  const exists = favorites.some(
+    (city) => city.toLowerCase() === currentCity.toLowerCase(),
+  );
+
+  if (exists) {
+    favorites = favorites.filter(
+      (city) => city.toLowerCase() !== currentCity.toLowerCase(),
+    );
+  } else {
+    favorites.push(currentCity);
+  }
 
   saveFavorites(favorites);
 
-  renderFavorites();
-
   updateFavoriteButton();
-}
+
+  renderFavorites();
+});
+
+/* ===============================
+   UPDATE FAVORITE BUTTON
+================================ */
 
 function updateFavoriteButton() {
   const favorites = getFavorites();
 
-  if (favorites.includes(currentCity)) {
-    favoriteBtn.textContent = "★ Saved to Favorites";
-  } else {
-    favoriteBtn.textContent = "☆ Add to Favorites";
-  }
+  const exists = favorites.some(
+    (city) => city.toLowerCase() === currentCity.toLowerCase(),
+  );
+
+  favoriteBtn.textContent = exists
+    ? "★ Remove from Favorites"
+    : "☆ Add to Favorites";
+
+  favoriteBtn.classList.toggle("active", exists);
 }
 
-function renderFavorites() {
-  const favorites = getFavorites();
+/* ===============================
+   RENDER FAVORITES
+================================ */
 
+function renderFavorites() {
   favoritesContainer.innerHTML = "";
+
+  const favorites = getFavorites();
 
   if (favorites.length === 0) {
     favoritesContainer.innerHTML = `
 
-            <p class="no-favorites">
+            <div class="empty-favorites">
 
-                No favorite cities yet.
-                Search a city and add it to favorites.
+                <div>
+                    ☆
+                </div>
 
-            </p>
+                <p>
+                    No favorite cities yet.
+                </p>
+
+                <small>
+                    Search a city and add it to your favorites.
+                </small>
+
+            </div>
 
         `;
 
@@ -348,112 +394,72 @@ function renderFavorites() {
   favorites.forEach((city) => {
     const card = document.createElement("div");
 
-    card.className = "favorite-city-card";
+    card.className = "favorite-card";
 
     card.innerHTML = `
 
-                <span
-                    class="favorite-city-name"
-                    data-city="${city}"
-                >
+                <div class="favorite-city-icon">
+                    📍
+                </div>
 
-                    📍 ${city}
 
-                </span>
+                <div class="favorite-city-info">
+
+                    <h3>
+                        ${city}
+                    </h3>
+
+                    <p>
+                        Click to view weather
+                    </p>
+
+                </div>
 
 
                 <button
-                    class="remove-favorite"
-                    data-city="${city}"
-                >
+                    class="remove-favorite">
 
-                    ✕
+                    ×
 
                 </button>
 
             `;
 
+    card.addEventListener("click", function (event) {
+      if (event.target.classList.contains("remove-favorite")) {
+        return;
+      }
+
+      getWeather(city);
+    });
+
+    card
+      .querySelector(".remove-favorite")
+      .addEventListener("click", function (event) {
+        event.stopPropagation();
+
+        let favorites = getFavorites();
+
+        favorites = favorites.filter((item) => item !== city);
+
+        saveFavorites(favorites);
+
+        renderFavorites();
+
+        updateFavoriteButton();
+      });
+
     favoritesContainer.appendChild(card);
   });
-
-  document.querySelectorAll(".favorite-city-name").forEach((item) => {
-    item.addEventListener("click", () => {
-      const city = item.dataset.city;
-
-      cityInput.value = city;
-
-      getWeatherByCity(city);
-    });
-  });
-
-  document.querySelectorAll(".remove-favorite").forEach((button) => {
-    button.addEventListener("click", () => {
-      removeFromFavorites(button.dataset.city);
-    });
-  });
 }
 
-favoriteBtn.addEventListener("click", addToFavorites);
+/* ===============================
+   MY LOCATION
+================================ */
 
-// =====================================
-// NAVIGATION
-// =====================================
-
-function setActiveNav(activeItem) {
-  navItems.forEach((item) => {
-    item.classList.remove("active");
-  });
-
-  activeItem.classList.add("active");
-}
-
-dashboardNav.addEventListener("click", (event) => {
-  event.preventDefault();
-
-  setActiveNav(dashboardNav);
-
-  window.scrollTo({
-    top: 0,
-
-    behavior: "smooth",
-  });
-});
-
-forecastNav.addEventListener("click", (event) => {
-  event.preventDefault();
-
-  setActiveNav(forecastNav);
-
-  const forecastSection = document.getElementById("forecastSection");
-
-  forecastSection.scrollIntoView({
-    behavior: "smooth",
-
-    block: "start",
-  });
-});
-
-favoritesNav.addEventListener("click", (event) => {
-  event.preventDefault();
-
-  setActiveNav(favoritesNav);
-
-  const favoritesSection = document.getElementById("favoritesSection");
-
-  favoritesSection.scrollIntoView({
-    behavior: "smooth",
-
-    block: "start",
-  });
-});
-
-// =====================================
-// MY LOCATION
-// =====================================
-
-locationBtn.addEventListener("click", () => {
+locationBtn.addEventListener("click", function () {
   if (!navigator.geolocation) {
-    showError("Geolocation is not supported by your browser.");
+    showError("Geolocation is not supported.");
 
     return;
   }
@@ -462,36 +468,32 @@ locationBtn.addEventListener("click", () => {
 
   navigator.geolocation.getCurrentPosition(
     (position) => {
-      const lat = position.coords.latitude;
-
-      const lon = position.coords.longitude;
-
-      getWeatherByCoordinates(lat, lon);
+      getWeatherByLocation(position.coords.latitude, position.coords.longitude);
     },
 
     () => {
       hideLoading();
 
-      showError("Location permission denied. Please allow location access.");
+      showError("Please allow location permission.");
     },
   );
 });
 
-// =====================================
-// GET WEATHER BY LOCATION
-// =====================================
+/* ===============================
+   LOCATION WEATHER
+================================ */
 
-async function getWeatherByCoordinates(lat, lon) {
+async function getWeatherByLocation(lat, lon) {
   try {
-    const currentResponse = await fetch(
-      `${CURRENT_API}?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`,
+    const response = await fetch(
+      `${WEATHER_API}?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`,
     );
 
-    if (!currentResponse.ok) {
-      throw new Error("Unable to get current location weather.");
-    }
+    const data = await response.json();
 
-    const currentData = await currentResponse.json();
+    currentCity = data.name;
+
+    updateWeather(data);
 
     const forecastResponse = await fetch(
       `${FORECAST_API}?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`,
@@ -499,17 +501,11 @@ async function getWeatherByCoordinates(lat, lon) {
 
     const forecastData = await forecastResponse.json();
 
-    currentCity = currentData.name;
-
-    displayCurrentWeather(currentData);
-
-    displayForecast(forecastData);
+    updateForecast(forecastData);
 
     updateFavoriteButton();
 
-    showWeatherContent();
-
-    localStorage.setItem("lastCity", currentCity);
+    showWeather();
   } catch (error) {
     showError(error.message);
   } finally {
@@ -517,36 +513,66 @@ async function getWeatherByCoordinates(lat, lon) {
   }
 }
 
-// =====================================
-// DARK MODE
-// =====================================
+/* ===============================
+   NAVIGATION FIX
+================================ */
 
-themeBtn.addEventListener("click", () => {
-  document.body.classList.toggle("dark");
+document.querySelectorAll(".nav-item").forEach((item) => {
+  item.addEventListener("click", function (event) {
+    const href = this.getAttribute("href");
 
-  const isDark = document.body.classList.contains("dark");
+    if (href.startsWith("#")) {
+      event.preventDefault();
 
-  themeBtn.textContent = isDark ? "☀️" : "🌙";
+      document.querySelectorAll(".nav-item").forEach((nav) => {
+        nav.classList.remove("active");
+      });
 
-  localStorage.setItem("skycast-theme", isDark ? "dark" : "light");
+      this.classList.add("active");
+
+      const target = document.querySelector(href);
+
+      if (target) {
+        target.scrollIntoView({
+          behavior: "smooth",
+
+          block: "start",
+        });
+      }
+    }
+  });
 });
 
-const savedTheme = localStorage.getItem("skycast-theme");
+/* ===============================
+   THEME
+================================ */
 
-if (savedTheme === "dark") {
-  document.body.classList.add("dark");
+themeBtn.addEventListener("click", function () {
+  document.body.classList.toggle("dark-mode");
+
+  const dark = document.body.classList.contains("dark-mode");
+
+  localStorage.setItem(THEME_KEY, dark ? "dark" : "light");
+
+  themeBtn.textContent = dark ? "☀️" : "🌙";
+});
+
+/* ===============================
+   LOAD THEME
+================================ */
+
+if (localStorage.getItem(THEME_KEY) === "dark") {
+  document.body.classList.add("dark-mode");
 
   themeBtn.textContent = "☀️";
 }
 
-// =====================================
-// UI FUNCTIONS
-// =====================================
+/* ===============================
+   UI FUNCTIONS
+================================ */
 
 function showLoading() {
-  loading.style.display = "block";
-
-  weatherContent.classList.add("hidden");
+  loading.style.display = "flex";
 
   welcomeMessage.classList.add("hidden");
 }
@@ -555,48 +581,38 @@ function hideLoading() {
   loading.style.display = "none";
 }
 
-function showWeatherContent() {
-  weatherContent.classList.remove("hidden");
-
+function showWeather() {
   welcomeMessage.classList.add("hidden");
+
+  weatherContent.classList.remove("hidden");
 }
 
 function showError(message) {
-  errorMessage.textContent = message;
+  errorMessage.textContent = `⚠️ ${message}`;
+
+  errorMessage.style.display = "block";
 }
 
-function clearError() {
-  errorMessage.textContent = "";
-}
+function formatTime(timestamp) {
+  return new Date(timestamp * 1000).toLocaleTimeString("en-US", {
+    hour: "2-digit",
 
-function formatDate(date) {
-  return date.toLocaleDateString("en-US", {
-    weekday: "long",
-
-    month: "long",
-
-    day: "numeric",
-
-    year: "numeric",
+    minute: "2-digit",
   });
 }
 
-function formatTime(timestamp, timezoneOffset) {
-  const date = new Date((timestamp + timezoneOffset) * 1000);
-
-  return date.toUTCString().split(" ")[4].slice(0, 5);
+function capitalize(text) {
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
-// =====================================
-// INITIALIZATION
-// =====================================
+/* ===============================
+   INITIALIZE
+================================ */
 
 renderFavorites();
 
-const lastCity = localStorage.getItem("lastCity");
+const lastCity = localStorage.getItem(LAST_CITY_KEY);
 
 if (lastCity) {
-  cityInput.value = lastCity;
-
-  getWeatherByCity(lastCity);
+  getWeather(lastCity);
 }
